@@ -1,0 +1,597 @@
+%-----------------------------------
+%-----------------------------------
+% Beamer template made by Chenxiao
+% 2023.11.04 at Qingdao,China
+%-----------------------------------
+%-----------------------------------
+
+\documentclass{ctexbeamer}
+\setbeameroption{show notes on second screen=bottom}
+\mode<presentation> {
+	\usetheme{Berlin}
+	\usecolortheme{seahorse}
+	
+	%\setbeamertemplate｛footline｝
+	%若要删除所有幻灯片中的页脚，请取消注释此行
+	
+	%\setbeamertemplate｛footline｝[页码]
+	%若要用简单的幻灯片计数替换所有幻灯片中的页脚，请取消注释此行
+	
+	%\setbeamertemplate｛导航符号｝｛｝
+	%要删除所有幻灯片底部的导航符号，请取消注释此行
+}
+
+\usepackage{graphicx} % 允许包含图像
+\usepackage{booktabs} % 允许在表中使用\toprule、\ midrule和\ bottomrule
+\usepackage[UTF8,noindent]{ctexcap}  % 使用中文输入及显示
+\usepackage[bookmarks=true]{hyperref}
+
+\usepackage{tikz}
+\usetikzlibrary{shapes,arrows,positioning,calc}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+
+
+\usepackage{siunitx}
+\sisetup{
+  separate-uncertainty = true,
+  inter-unit-product = \ensuremath{{}\cdot{}}
+}
+% \usepackage{fontspec} % 加载系统字体
+
+% 设置思源宋体
+% \setCJKmainfont{Source Han Serif CN} % 简体中文
+% %\setCJKmainfont{Source Han Serif TC} % 繁体中文
+
+% % 可选：设置其他字体样式
+% \setCJKsansfont{Source Han Sans SC}   % 设置无衬线字体（如标题）
+% \setCJKmonofont{Courier New}          % 设置等宽字体
+
+
+%-----------------------------------
+%	以下为正文
+%-----------------------------------
+
+\title[数字信号处理初步]{数字信号处理与频谱分析初步} 
+% 简短标题显示在每张幻灯片的底部，完整标题仅在标题页上
+
+\author{Ariel Xiong} % Your name
+\institute[浙江工商大学] % 您的机构将出现在每张幻灯片的底部，可能是节省空间的简写
+{
+	浙江工商大学萨塞克斯人工智能学院 \\ % 你所在的机构
+	\medskip
+	\textit{ArielHeleneto@outlook.com} % Your email address
+}
+\date{\today} % 日期，可以更改为自定义日期
+
+\begin{document}
+	
+	\begin{frame}
+		\titlepage % 将标题页打印为第一张幻灯片
+	\end{frame}
+	
+	\begin{frame}[allowframebreaks]
+		\frametitle{目录} % 目录幻灯片，注释此块以将其删除
+		\tableofcontents % 在整个演示过程中，如果您选择使用\ section｛｝和\ submission｛}命令，这些命令将自动打印在此幻灯片上，作为演示的概述
+	\end{frame}
+	
+	%-----------------------------------
+	%	开始创建PPT
+	%-----------------------------------
+	
+	\section{系统分析与控制入门} % 可以创建章节，以便将您的演讲组织成离散的块，所有章节和小节都会自动打印在目录中，作为演讲的概述
+	\subsection{控制系统简介} % 可以在一组具有共同主题的幻灯片之前创建一个小节，以进一步将您的演示分解为块
+	
+	\begin{frame}
+		\frametitle{控制系统}
+		\note{定义 控制系统的一些基本术语
+受控变量和控制信号或操纵变量 受控变量是被测量和控制的量或状态。
+
+控制信号或操纵变量是由控制器改变的量或状态，从而影响受控变量的值。通常，受控变量是系统的输出。控制意味着测量系统的受控变量的值，并将控制信号应用于系统，以校正或限制测量值与期望值的偏差。
+工厂 工厂可能是一件设备，也可能只是一组协同工作的机器零件，其目的是执行特定的操作。
+过程 任何需要控制的操作都称为过程。例如化学、经济和生物过程。
+系统 系统是协同作用并执行特定目标的组件的组合。系统不必是物理的。系统的概念可以应用于抽象的动态现象，例如经济学中遇到的现象。因此，“系统”一词应解释为物理、生物、经济等系统。}
+	\end{frame}
+
+	\begin{frame}
+		\frametitle{PID 系统}
+		\begin{figure}
+			\resizebox{\linewidth}{!}{
+				\begin{tikzpicture}[
+    block/.style={draw, rectangle, minimum height=1cm, minimum width=2cm, align=center},
+    sum/.style={draw, circle, minimum size=6mm},
+    input/.style={coordinate},
+    output/.style={coordinate},
+    arrow/.style={->, >=stealth', thick},
+    node distance=1cm
+]
+
+% 输入节点
+\node[input] (setpoint) {};
+\node[left=0.1cm of setpoint] {$r(t)$};
+
+% 第一个求和点 (误差计算)
+\node[sum, right=of setpoint] (sum1) {$\Sigma$};
+% \node[above left=0.1cm and 0.1cm of sum1] {$+$};
+% \node[below left=0.1cm and 0.1cm of sum1] {$-$};
+
+% 分支点 (误差信号)
+\node[circle, inner sep=0pt, minimum size=2pt, fill=black, right=1cm of sum1] (branch) {};
+
+% PID 控制器内部结构
+% 比例支路
+\node[block, above right=1cm and 2cm of branch] (p) {$K_p$};
+% \node[above=0.1cm of p] {比例支路};
+
+% 积分支路
+\node[block, right=2cm of branch] (i) {$\displaystyle\frac{K_i}{s}$};
+% \node[above=0.1cm of i] {积分支路};
+
+% 微分支路
+\node[block, below right=1cm and 2cm of branch] (d) {$K_d s$};
+% \node[below=0.1cm of d] {微分支路};
+
+% PID 求和点
+\node[sum, right=7cm of branch] (sum2) {$\Sigma$};
+
+% 被控对象
+\node[block, right=of sum2] (plant) {$G(s)$};
+
+% 输出节点
+\node[output, right=of plant] (output) {};
+\node[right=0.1cm of output] {$y(t)$};
+
+% 反馈回路
+\node[block, below= 2.5cm of plant] (feedback) {$H(s)$};
+
+% 第二个求和点 (反馈信号)
+\node[sum, left= 2cm of feedback] (sum3) {$\Sigma$};
+
+% 连接线
+% 前向通道
+\draw[arrow] (setpoint) -- node[above, pos=0.8] {$+$} (sum1);
+\draw[arrow] (sum1) -- node[above] {$e(t)$} (branch);
+\draw[arrow] (branch) |- (p);
+\draw[arrow] (branch) -- (i);
+\draw[arrow] (branch) |- (d);
+\draw[arrow] (p) -| node[above,pos=0.25] {$K_p e(t)$} (sum2);
+\draw[arrow] (i) -- node[above] {$\displaystyle K_i \int e(t) dt$} (sum2);
+\draw[arrow] (d) -| node[above,pos=0.25] {$K_d \frac{de(t)}{dt}$} (sum2);
+\draw[arrow] (sum2) -- node[above] {$u(t)$} (plant);
+\draw[arrow] (plant) -- (output);
+
+% 反馈通道
+\draw[arrow] (output) |- (feedback);
+\draw[arrow] (feedback) -- node[above] {$y_m(t)$} (sum3);
+\draw[arrow] (sum3) -| node[pos=0.99, left] {$-$} (sum1);
+
+% 连接反馈求和点
+% \draw[arrow] (branch) |- (sum3) node[pos=0.25, right] {$e(t)$};
+
+% 标注
+\draw[dashed] ($(branch)+(-0.5,-2.5)$) rectangle ($(sum2)+(0.5,2.5)$);
+% \node[above] at ($(branch)!0.5!(sum2)+(0,1.8)$) {PID控制器};
+
+% 系统标签
+% \node[above=0.5cm of plant] {PID控制系统框图};
+% \node[below=1cm of feedback] {负反馈回路};
+
+\end{tikzpicture}
+			}
+			\caption{PID 控制器}
+		\end{figure}
+	\end{frame}
+
+	\subsection{拉普拉斯变换和傅里叶变换}
+
+	\begin{frame}
+		\frametitle{拉普拉斯变换}
+		\begin{definition}[拉普拉斯变换]
+			信号或函数 $f$ 的拉普拉斯变换（定义于 $t \geq 0$）是函数 $$F(s) = \mathcal{L}\{f(t)\} = \int_0^{\infty} f(t)e^{-st} dt$$
+		\end{definition}
+		\begin{figure}[width=\linewidth]
+			
+		\end{figure}
+	\end{frame}
+
+	\begin{frame}
+		\frametitle{傅里叶变换}
+		\begin{definition}[傅里叶变换]
+			信号或函数 $f$ 的傅里叶变换是函数 $$F(\omega) = \mathcal{F}\{f(t)\} = \int_{-\infty}^{\infty} f(t)e^{-j\omega t} dt$$
+		\end{definition}
+		\begin{figure}[width=\linewidth]
+			
+		\end{figure}
+	\end{frame}
+
+	\section{数字信号处理初步}
+	\subsection{定义}
+	\begin{frame}
+		\frametitle{信号的性质}
+		\begin{definition}[信号]
+			携带信息的量。
+		\end{definition}
+		\begin{definition}[模拟信号]
+			用连续变量物理量表示的信号。
+		\end{definition}
+		\begin{definition}[数字信号]
+			用物理量的离散值表示的信号。
+		\end{definition}
+		\note{模拟信号：电压
+
+		常见的数字信号：数字式电压表量出来的值
+
+		需要注意的是，这里的数字信号不一定只能是0和1		
+	}
+	\end{frame}
+
+	\begin{frame}[allowframebreaks]
+		\frametitle{常见的数字信号}
+		\begin{definition}[冲激信号]
+			\begin{equation}
+				\delta [n]=\begin{cases}
+					1 (n=0)\\0 (n\neq 0)
+				\end{cases}
+			\end{equation}
+		\end{definition}
+		
+		\begin{definition}[阶跃信号]
+			\begin{equation}
+				u[n]=\begin{cases}
+					1 (n\geq0)\\0 (n< 0)
+				\end{cases}
+			\end{equation}
+		\end{definition}
+		\begin{definition}[斜坡信号]
+			\begin{equation}
+				r[n]=\begin{cases}
+					n (n\geq0)\\0 (n< 0)
+				\end{cases}
+			\end{equation}
+		\end{definition}
+		
+	\end{frame}
+
+	\begin{frame}[allowframebreaks]
+		\frametitle{冲击响应}
+		\begin{definition}[冲激响应]
+			当系统的输入为冲击信号时，输出为该系统的冲激响应，用 $h[n]$ 表示。
+		\end{definition}
+	\end{frame}
+
+	\subsection{采样}
+
+	\begin{frame}
+		\frametitle{模数转换}
+
+		将模拟信号转换为数字信号通常需要 ADC 组件。该组件一般公式如下。
+
+		$$\mathbf{output}=\frac{\mathbf{input}}{\mathbf{range}}\times{2^\mathbf{bit}}$$
+	\end{frame}
+
+	% \begin{frame}
+	% 	\frametitle{模数转换}
+	% 	将模拟信号转换为数字信号通常需要 ADC 组件。该组件一般公式如下。
+	% 	\begin{definition}[香农采样定理]
+	% 		包含最高频率 $f_c$ 成分的模拟信号可以完全用样本表示，前提是采样率 $f_s\geq2f_c$。
+	% 	\end{definition}
+	% \end{frame}
+
+	\begin{frame}
+		\frametitle{香农采样定理}
+		\begin{definition}[香农采样定理]
+			包含最高频率 $f_c$ 成分的模拟信号可以完全用样本表示，前提是采样率 $f_s\geq2f_c$。
+		\end{definition}
+	\end{frame}
+
+	\begin{frame}
+		\frametitle{混叠}
+		\begin{figure}
+			\resizebox{0.9\linewidth}{!}{
+				\begin{tikzpicture}[scale=0.03]
+\begin{axis}[
+    axis lines = middle,
+    xmin = 0, xmax = 2,
+    ymin = -1.25, ymax = 1.25,
+    xlabel = $t$,
+    ylabel = {$f(t)$},
+]
+\addplot [
+    domain=0:2,
+    samples=10000,
+    color=blue,
+]
+{sin(deg(x*4*pi))};
+\addplot [
+    domain=0:2,
+    samples=7,
+    color=red,
+]
+{sin(deg(x*4*pi))};
+\end{axis}
+\end{tikzpicture}
+			}
+			\caption{采样率影响}
+		\end{figure}
+	\end{frame}
+
+	\subsection{傅里叶变换}
+
+	\begin{frame}
+		\frametitle{傅里叶变换}
+		\begin{definition}[傅里叶变换]
+			对于数字信号 $x[n]$，其傅里叶变换为 $$X(\omega)=\sum_{-\infty}^{\infty}x[n]e^{-j\omega n}$$。其中，$\omega\in [0,2\pi]$。
+		\end{definition}
+	\end{frame}
+
+	\begin{frame}
+		\frametitle{傅里叶变换的性质}
+		\begin{itemize}
+			\item 线性
+			\item 时移：$x[n-n_0]\rightarrow X(\omega)e^{-j\omega n_0}$
+			\item 卷积：$x_1[n]*x_2[n]\rightarrow X_1(\omega)\times X_2(\omega)$
+		\end{itemize}
+	\end{frame}
+	
+	\begin{frame}
+		\frametitle{离散傅里叶变换}
+		\begin{definition}[离散傅里叶变换]
+			对于长度为 $N$ 的序列，其离散傅里叶变换为 $$X[k]=\sum_0^{N-1}x[n]e^{-j\frac{2\pi k n}{N}}$$
+		\end{definition}
+	\end{frame}
+
+	\subsection{数字系统}
+
+	\begin{frame}
+		\frametitle{线性时不变系统}
+		\begin{definition}[线性系统]
+			如果一个系统满足线性性质，那么对于任意输入信号 $x_{1}(t)$ 和 $x_{2}(t)$，以及任意常数 $a$ 和 $b$，如果输入为 $ax_{1}(t)+bx_{2}(t)$，则输出为 $ay_{1}(t)+by_{2}(t)$，其中 $y_{1}(t)$ 和 $y_{2}(t)$ 分别是输入 $x_{1}(t)$ 和 $x_{2}(t)$ 的响应。
+		\end{definition}
+		\begin{definition}[时不变系统]
+			如果一个系统满足时不变性质，那么对于任意输入信号 $x(t)$ 和任意时间延迟 $\tau$，如果输入为 $x(t-\tau)$，则输出为 $y(t-\tau )$，其中 $y(t)$ 是输入 $x(t)$ 的响应。
+		\end{definition}
+	\end{frame}
+
+	\begin{frame}
+		\frametitle{线性时不变系统的描述}
+		\begin{definition}[线性时不变系统]
+			$$y[n]=\sum_{k=1}^{N}a_k y[n-k]+\sum_{k=1}^{N}b_k x[n-k]$$
+		\end{definition}
+	\end{frame}
+
+	\begin{frame}
+		\frametitle{因果系统}
+		% 因果系统是指
+		\begin{definition}[因果]
+			因果系统，称一个系统是“因果”的，是指此系统满足因果性。即对输入的响应不可能在此输入到达的时刻之前出现；也就是说系统的输出仅与当前与过去的输入有关，而与将来的输入无关。
+		\end{definition}
+	\end{frame}
+
+	\begin{frame}
+		\frametitle{转换模拟信号到数字信号}
+		\begin{itemize}
+			\item $y(t)$ 转换为 $y[n]$。
+			\item $x(t)$ 转换为 $x[n]$。
+			\item $\frac{dy(t)}{dt}$ 转换为 $\frac{y[n]-y[n-1]}{T}$。
+			\item $\frac{dy^2(t)}{dt^2}$ 转换为 $\frac{\frac{y[n]-y[n-1]}{T}-\frac{y[n-1]-y[n-2]}{T}}{T}$。
+		\end{itemize}
+	\end{frame}
+
+	\subsection{门限法}
+
+	\begin{frame}
+		\frametitle{门限法滤噪音}
+		将傅里叶变换后幅度低于一定值的噪声幅度调整为$0$，然后还原原始信号。
+	\end{frame}
+
+	\begin{frame}
+		\frametitle{短时距傅里叶变换}
+		计算短时距傅里叶变换的过程是将长时间信号分成数个较短的等长信号，然后再分别计算每个较短段的傅里叶变换。通常拿来描绘频域与时域上的变化，为时频分析中其中一个重要的工具。 
+		\begin{definition}[短时距傅里叶变换]
+			对于数字信号 $x[n]$，其短时距傅里叶变换为 $$\mathbf{STFT}\{x[n]\}(m,\omega)\equiv X(m,\omega) = \sum_{n=-\infty}^{\infty} x[n]w[n-m]e^{-j \omega n} $$。其中，$\omega\in [0,2\pi]$。
+		\end{definition}
+	\end{frame}
+
+	\section{滤波器设计}
+
+	\subsection{Z 变换}
+
+	\begin{frame}
+		\frametitle{Z 变换}
+		\begin{definition}[Z 变换]
+			对于数字信号 $x[n]$，其 Z 变换为 $$X(\mathcal{Z})=\sum_0^{\infty}x[n]\mathcal{Z}^{-n}$$。其中，$\mathcal{Z}$ 为一复数。
+		\end{definition}
+
+		注意到，当 $\mathcal{Z}=e^{j\omega}$ 时，该变换退化为傅里叶变换。
+		% \note{练习：将$x[n]=\{1,0.8,0.8^2,\cdots,0.8^n$转化为}
+	\end{frame}
+	\begin{frame}[allowframebreaks]
+		\frametitle{Z 变换练习}
+		\begin{problem}
+			求数字信号 $x[n]=\left\{1,0.8,0.8^2,\cdots,0.8^n\right\}$ 的 Z 变换。
+		\end{problem}
+		\begin{solution}
+			\begin{equation*}\begin{aligned}
+X(\mathcal{Z}) =& \sum_0^{\infty}x[n]\mathcal{Z}^{-n} & \\
+= & \left(0.8\mathcal{Z}^-1\right)^0+\left(0.8\mathcal{Z}^-1\right)^1+\left(0.8\mathcal{Z}^-1\right)^2+\cdots\left(0.8\mathcal{Z}^-1\right)^n \\
+=& \lim_{n\rightarrow\infty}\frac{1-\cdots\left(0.8\mathcal{Z}^-1\right)^n}{1-0.8\mathcal{Z}^-1} \\
+=& \frac{z}{z-0.8}
+\end{aligned}\end{equation*}
+		\end{solution}
+
+	\end{frame}
+	\begin{frame}
+			\frametitle{时移信号的 Z 变换}
+			\begin{equation*}
+				\begin{aligned}
+{} & \sum_{n=0}^{\infty}x[n-1]u[n-1]\mathcal{Z}^{-n}  \\
+=& x[-1]u[-1]\mathcal{Z}^0+x[0]\mathcal{Z}^{-1}+x[1]\mathcal{Z}^{-2}+x[2]\mathcal{Z}^{-3}+\cdots \\
+=& \mathcal{Z}^{-1}(x[0]\mathcal{Z}^0+x[1]\mathcal{Z}^{-1}+x[2]\mathcal{Z}^{-2}+\cdots) \\
+=& \mathcal{Z}^{-1}X(\mathcal{Z})
+\end{aligned}
+			\end{equation*}
+			
+			% \begin{definition}[Z 变换]
+			% 	对于数字信号 $x[n]$，其 Z 变换为 $$X(\mathcal{Z})=\sum_0^{\infty}x[n]z^{-n}$$。其中，$z$ 为一复数。
+			% \end{definition}
+
+			% 注意到，当 $z=e^{j\omega}$ 时，该变换退化为傅里叶变换。
+	\end{frame}
+	\subsection{传递函数和系统稳定性}
+	\begin{frame}
+			\frametitle{传递函数}
+			\begin{definition}[传递函数]
+			对于一个输出为$y[n]$，输入为$x[n]$的系统，其传递函数为$H(\mathcal{Z})=\frac{Y(\mathcal{Z})}{X(\mathcal{Z})}$。
+		\end{definition}
+	\end{frame}
+	\begin{frame}
+			\frametitle{系统稳定性}
+			\begin{definition}[系统稳定性]
+			$\lim_{n\rightarrow\infty}h[n]=0$ 的系统为稳定系统。$\lim_{n\rightarrow\infty}h[n]=a\neq0$ 的系统为临界稳定系统。 
+			\end{definition}
+	\end{frame}
+	\begin{frame}
+			\frametitle{零点和极点}
+			\begin{definition}[零点]
+			使传递函数分子取得 $0$ 的 $\mathcal{Z}$ 的取值称为零点。
+			\end{definition}
+			\begin{definition}[极点]
+			使传递函数分母取得 $0$ 的 $\mathcal{Z}$ 的取值称为零点。
+			\end{definition}
+	\end{frame}
+	\begin{frame}
+			\frametitle{零点和极点的性质}
+			在零点上增益总是 $0$，在极点上增益取得最大值。
+	\end{frame}
+	\begin{frame}
+			\frametitle{判断系统稳定性}
+			极点的模小于  $1$。
+	\end{frame}
+	\subsection{滤波器设计}
+	\begin{frame}[allowframebreaks]
+			\frametitle{练习设计一个滤波器}
+			\begin{problem}
+				一个电子设备需要配备一个数字滤波器，用于阻止 $\SI{250}{Hz}$ 的频率并允许 $\SI{500}{Hz}$ 的频率通过。采样率为 $\SI{2000}{Hz}$。
+在 $\mathcal{Z}$ 平面中，选择并显示一对零点和一对极点的位置，
+增益为 $25$，位于通过频率处。绘制从 0 到采样频率一半范围内的频率响应图，并标记任何具有特殊意义的值。
+			\end{problem}
+			\begin{solution}
+				\begin{itemize}
+					\item 确定传递函数：$H(\mathcal{Z})=\frac{\left(\mathcal{Z}-1\angle \frac{\pi}{4}\right)\left(\mathcal{Z}+1\angle \frac{\pi}{4}\right)}{\left(\mathcal{Z}-r\angle \frac{\pi}{2}\right)\left(\mathcal{Z}+r\angle \frac{\pi}{2}\right)}$
+					\item 确定增益：$\left|H\left((\omega=\frac{\pi}{2}\right)\right|=25$ 可以得到 $r=0.971$
+					\item 作图。
+					\item 确定时域。
+				\end{itemize}				
+			\end{solution}
+	\end{frame}
+	
+% 	%------------------------------------------------
+% 	\subsection{Subsection Example 2}
+	
+% 	\begin{frame}
+% 		\frametitle{Bullet Points}
+% 		\begin{itemize}
+% 			\item What we do may be small, but it has a certain character of permanence.
+% 			\item Euclid geometry was as dazzling as first love.
+% 			\item Talk is cheap, solve the PDE.
+% 		\end{itemize}
+% 	\end{frame}
+	
+% 	%------------------------------------------------
+	
+% 	\begin{frame}
+% 		\frametitle{Blocks of Highlighted Text}
+% 		\begin{block}{Block 1}
+% 			Certainly the best times were when I was alone with mathematics: free of ambition and pretense, and indifferent to the world.
+% 		\end{block}
+		
+% 		\begin{block}{Block 2}
+% 			Wir müssen wissen, Wir werden wissen.
+% 		\end{block}
+		
+% 		\begin{block}{Block 3}
+% 			If people do not believe that mathematics is simple, it is only because they do not realize how complicated life is.	
+% 		\end{block}
+% 	\end{frame}
+	
+% 	%------------------------------------------------
+	
+% 	\begin{frame}
+% 		\frametitle{Multiple Columns}
+% 		\begin{columns}[c] % The "c" option specifies centered vertical alignment while the "t" option is used for top vertical alignment
+			
+% 			\column{.45\textwidth} % Left column and width
+% 			\textbf{Heading}
+% 			\begin{enumerate}
+% 				\item Statement
+% 				\item Explanation
+% 				\item Example
+% 			\end{enumerate}
+			
+% 			\column{.5\textwidth} % Right column and width
+% 			Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer lectus nisl, ultricies in feugiat rutrum, porttitor sit amet augue. Aliquam ut tortor mauris. Sed volutpat ante purus, quis accumsan dolor.
+			
+% 		\end{columns}
+% 	\end{frame}
+	
+% 	%------------------------------------------------
+% 	\section{Second Section}
+% 	%------------------------------------------------
+	
+% 	\begin{frame}
+% 		\frametitle{Table}
+% 		\begin{table}
+% 			\begin{tabular}{l l l}
+% 				\toprule
+% 				\textbf{Treatments} & \textbf{Response 1} & \textbf{Response 2}\\
+% 				\midrule
+% 				Treatment 1 & 0.0003262 & 0.562 \\
+% 				Treatment 2 & 0.0015681 & 0.910 \\
+% 				Treatment 3 & 0.0009271 & 0.296 \\
+% 				\bottomrule
+% 			\end{tabular}
+% 			\caption{Table caption}
+% 		\end{table}
+% 	\end{frame}
+	
+% 	%------------------------------------------------
+	
+% 	\begin{frame}
+% 		\frametitle{Theorem}
+% 		\begin{theorem}[Mass--energy equivalence]
+% 		\centerline{$E = mc^2$}
+% 		\end{theorem}
+% 	\end{frame}
+	
+% 	%------------------------------------------------
+	
+% 	\begin{frame}[fragile] % Need to use the fragile option when verbatim is used in the slide
+% 		\frametitle{Verbatim}
+% 		\begin{example}[Theorem Slide Code]
+% 			\begin{verbatim}
+% \begin{frame}
+% \frametitle{Theorem}
+% \begin{theorem}[Mass--energy equivalence]
+% $E = mc^2$
+% \end{theorem}
+% \end{frame}\end{verbatim}
+% 		\end{example}
+% 	\end{frame}
+	
+% 	%------------------------------------------------
+	
+% 	\begin{frame}
+% 		\frametitle{Figure}
+% 		includegraphics 命令用于插入图片，你提供了图片文件的名称 test，但确保在LaTeX源文件所在的目录中有名为 test 的图片文件，并且该文件的格式（如 .png、.jpg、.pdf 等）是TeX支持的格式。如果图片文件不在相同的目录中，你需要提供正确的路径。
+% %		\begin{figure}
+% %		\includegraphics[width=0.8\linewidth]{test}
+% %		\end{figure}
+% 	\end{frame}
+	
+	
+% 	\begin{frame}
+% 		\Huge{\centerline{Thank you all！}}
+% 		\centering{{\normalsize 我们是孩子，但我们精力充沛，勇往直前！}}
+% 	\end{frame}
+	
+\end{document} 
